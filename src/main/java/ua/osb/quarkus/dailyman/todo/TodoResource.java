@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import ua.osb.quarkus.dailyman.todo.service.Todo;
+import ua.osb.quarkus.dailyman.todo.service.TodoService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -24,7 +26,7 @@ public class TodoResource {
 
     @GET
     public List<TodoDto> getAll() {
-        List<Todo> todos = service.getAll();
+        List<Todo> todos = service.findAll();
         return todos.stream()
                 .map(this::toDto)
                 .collect(toList());
@@ -45,7 +47,7 @@ public class TodoResource {
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     public static class TodoDto {
-        private long id;
+        private Long id;
         private String title;
         private String details;
         private ZonedDateTime createdDate;

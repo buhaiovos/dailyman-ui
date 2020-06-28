@@ -5,6 +5,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import org.junit.jupiter.api.Test;
 import ua.osb.quarkus.dailyman.todo.TodoResource.TodoDto;
+import ua.osb.quarkus.dailyman.todo.service.Todo;
+import ua.osb.quarkus.dailyman.todo.service.TodoService;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
@@ -18,9 +20,9 @@ import static org.mockito.Mockito.when;
 @QuarkusTest
 class TodoResourceTest {
     @InjectMock
-    private TodoService service;
+    TodoService service;
     @Inject
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Test
     void getAll_contentTypeIsJson() {
@@ -32,7 +34,7 @@ class TodoResourceTest {
 
     @Test
     void getAll_whenThereAreTodos_returnsThemInArray() throws Exception {
-        when(service.getAll()).thenReturn(List.of(withId(1), withId(2)));
+        when(service.findAll()).thenReturn(List.of(withId(1), withId(2)));
 
         given()
                 .when().get("/todos")
