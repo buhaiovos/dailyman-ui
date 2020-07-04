@@ -5,6 +5,8 @@ import ua.osb.quarkus.dailyman.todo.TodoDaoStub;
 import ua.osb.quarkus.dailyman.todo.persistence.Audit;
 import ua.osb.quarkus.dailyman.todo.persistence.TodoEntity;
 
+import javax.transaction.Transactional;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,6 +75,51 @@ class TodoServiceTest {
         var subject = new TodoServiceImpl(daoStub);
 
         assertThrows(ItemNotFound.class, () -> subject.findById(0), "No todo found with id 0");
+    }
+
+    @Test
+    void update_whenEntityIsPresent_updatesAndReturnsUpdated() {
+        var daoStub = TodoDaoStub.builder()
+                .returnsById(Optional.of(testEntity))
+                .build();
+        var subject = new TodoServiceImpl(daoStub);
+
+        Todo updated = subject.update(new Todo(1L, "updated title", "updated details", null, null));
+
+        assertThat(updated.id()).isEqualTo(21L);
+        assertThat(updated.title()).isEqualTo("updated title");
+        assertThat(updated.details()).isEqualTo("updated details");
+    }
+
+    @Test
+    void update_whenEntityIsNotPresent_throwsItemNotFound() {
+        var daoStub = TodoDaoStub.builder()
+                .returnsById(Optional.empty())
+                .build();
+        var subject = new TodoServiceImpl(daoStub);
+
+        assertThrows(ItemNotFound.class,
+                () -> subject.update(new Todo(1L, null, null, null, null)),
+                "No todo found with id 1");
+    }
+
+    @Test
+    void update_whenIdOfRequestedUpdateIsNull_throwsNullPointerException() {
+        var daoStub = TodoDaoStub.builder()
+                .returnsById(Optional.empty())
+                .build();
+        var subject = new TodoServiceImpl(daoStub);
+
+        assertThrows(NullPointerException.class,
+                () -> subject.update(new Todo(null, null, null, null, null)),
+                "Id for update is not provided");
+    }
+
+    @Test
+    void update_updateIsTransactional() throws Exception {
+        Method updateMethod = TodoServiceImpl.class.getMethod("update", Todo.class);
+
+        assertThat(updateMethod.isAnnotationPresent(Transactional.class)).isTrue();
     }
 
     private TodoEntity createEntity(String title, String details, long id) {

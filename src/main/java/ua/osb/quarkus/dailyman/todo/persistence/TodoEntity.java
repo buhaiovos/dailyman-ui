@@ -4,6 +4,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ua.osb.quarkus.dailyman.global.persistence.AuditListener;
+import ua.osb.quarkus.dailyman.global.persistence.Auditable;
 
 import javax.persistence.*;
 
@@ -13,6 +15,7 @@ import javax.persistence.*;
 @EqualsAndHashCode
 @Entity
 @Table(name = "todos")
+@EntityListeners(AuditListener.class)
 public class TodoEntity implements Auditable {
     // todo: wire up listener four Auditable
     //  fields update

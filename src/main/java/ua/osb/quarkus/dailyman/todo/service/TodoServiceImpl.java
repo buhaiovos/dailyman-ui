@@ -5,8 +5,10 @@ import ua.osb.quarkus.dailyman.todo.persistence.TodoDao;
 import ua.osb.quarkus.dailyman.todo.persistence.TodoEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.transaction.Transactional;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ class TodoServiceImpl implements TodoService {
     public List<Todo> findAll() {
         List<TodoEntity> entities = dao.findAll();
         return entities.stream()
-                .map(this::toServiceLevel)
+                .map(this::mappedToServiceLevel)
                 .collect(toList());
     }
 
@@ -29,17 +31,36 @@ class TodoServiceImpl implements TodoService {
         newTodo.setDetails(todo.details());
         dao.create(newTodo);
 
-        return toServiceLevel(newTodo);
+        return mappedToServiceLevel(newTodo);
+    }
+
+    @Override
+    @Transactional
+    public Todo update(Todo updatedTodo) {
+        TodoEntity todoEntity = getEntity(updatedTodo.id());
+        todoEntity.setTitle(updatedTodo.title());
+        todoEntity.setDetails(updatedTodo.details());
+        return mappedToServiceLevel(todoEntity);
+    }
+
+    private TodoEntity getEntity(Long idOrNull) {
+        long id = requireNonNull(idOrNull, "Id for udpate is not provided");
+        return dao.findById(id)
+                .orElseThrow(() -> itemNotFound(id));
     }
 
     @Override
     public Todo findById(long id) {
         return dao.findById(id)
-                .map(this::toServiceLevel)
-                .orElseThrow(() -> new ItemNotFound("No todo found with id " + id));
+                .map(this::mappedToServiceLevel)
+                .orElseThrow(() -> itemNotFound(id));
     }
 
-    private Todo toServiceLevel(TodoEntity entity) {
+    private ItemNotFound itemNotFound(long id) {
+        return new ItemNotFound("No todo found with id " + id);
+    }
+
+    private Todo mappedToServiceLevel(TodoEntity entity) {
         return new Todo(entity.getId(), entity.getTitle(),
                 entity.getDetails(), entity.getAudit().getCreatedDate(),
                 entity.getAudit().getLastModifiedDate());

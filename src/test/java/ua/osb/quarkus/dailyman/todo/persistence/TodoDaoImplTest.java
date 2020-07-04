@@ -6,13 +6,14 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
-class TodoRepositoryTest {
+class TodoDaoImplTest {
     @Inject
     EntityManager entityManager;
 
@@ -65,6 +66,31 @@ class TodoRepositoryTest {
         assertThat(all).hasSize(2);
         assertThat(all).extracting(TodoEntity::getTitle).containsExactly("First", "Second");
         assertThat(all).extracting(TodoEntity::getDetails).containsExactly("FD", "SD");
+    }
+
+    @Test
+    void audit_whenEntityIsCreated_createdDateTimeIsInitialized() {
+        var newTodo = new TodoEntity();
+        newTodo.setTitle("Title");
+        newTodo.setDetails("Change title");
+
+        TodoEntity created = subject.create(newTodo);
+
+        assertThat(created.getAudit().getCreatedDate()).isNotNull();
+        assertThat(created.getAudit().getCreatedDate())
+                .isEqualToIgnoringNanos(ZonedDateTime.now());
+    }
+
+    @Test
+    void audit_whenEntityIsCreated_lastModifiedDateIsStillNull() {
+        var newTodo = new TodoEntity();
+        newTodo.setTitle("Title");
+        newTodo.setDetails("Change title");
+
+        TodoEntity created = subject.create(newTodo);
+
+        assertThat(created.getAudit().getLastModifiedDate()).isNull();
+        assertThat(created.getAudit().getCreatedDate()).isNotNull();
     }
 
     @Transactional

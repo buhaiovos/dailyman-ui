@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @ApplicationScoped
-class TodoRepository implements TodoDao {
+class TodoDaoImpl implements TodoDao {
     private final EntityManager entityManager;
 
     @Override
