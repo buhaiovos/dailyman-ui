@@ -5,11 +5,13 @@ import ua.osb.quarkus.dailyman.todo.TodoDaoStub;
 import ua.osb.quarkus.dailyman.todo.persistence.Audit;
 import ua.osb.quarkus.dailyman.todo.persistence.TodoEntity;
 
-import javax.transaction.Transactional;
-import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -56,7 +58,7 @@ class TodoServiceTest {
     @Test
     void getById_whenEntityPresent_returnsFoundEntityConvertedToServiceModel() {
         var daoStub = TodoDaoStub.builder()
-                .returnsById(Optional.of(testEntity))
+                .entityById(Map.of(21L, testEntity))
                 .build();
         var subject = new TodoServiceImpl(daoStub);
 
@@ -70,8 +72,9 @@ class TodoServiceTest {
     @Test
     void getById_whenNoEntity_throwNotFoundException() {
         var daoStub = TodoDaoStub.builder()
-                .returnsById(Optional.empty())
+                .entityById(emptyMap())
                 .build();
+
         var subject = new TodoServiceImpl(daoStub);
 
         assertThrows(ItemNotFound.class, () -> subject.findById(0), "No todo found with id 0");
@@ -79,23 +82,31 @@ class TodoServiceTest {
 
     @Test
     void update_whenEntityIsPresent_updatesAndReturnsUpdated() {
+        ZonedDateTime updateTimestamp =
+                ZonedDateTime.of(LocalDateTime.of(2000, 1, 1, 10, 11, 12), ZoneId.of("UTC"));
         var daoStub = TodoDaoStub.builder()
-                .returnsById(Optional.of(testEntity))
+                .entityById(Map.of(21L, testEntity))
+                .onUpdateInsertsTimestamp(updateTimestamp)
                 .build();
+
         var subject = new TodoServiceImpl(daoStub);
 
-        Todo updated = subject.update(new Todo(1L, "updated title", "updated details", null, null));
+        Todo updated = subject.update(
+                new Todo(21L, "updated title", "updated details", null, null)
+        );
 
         assertThat(updated.id()).isEqualTo(21L);
         assertThat(updated.title()).isEqualTo("updated title");
         assertThat(updated.details()).isEqualTo("updated details");
+        assertThat(updated.lastModifiedDate()).isEqualTo(updateTimestamp);
     }
 
     @Test
     void update_whenEntityIsNotPresent_throwsItemNotFound() {
         var daoStub = TodoDaoStub.builder()
-                .returnsById(Optional.empty())
+                .entityById(emptyMap())
                 .build();
+
         var subject = new TodoServiceImpl(daoStub);
 
         assertThrows(ItemNotFound.class,
@@ -105,21 +116,13 @@ class TodoServiceTest {
 
     @Test
     void update_whenIdOfRequestedUpdateIsNull_throwsNullPointerException() {
-        var daoStub = TodoDaoStub.builder()
-                .returnsById(Optional.empty())
-                .build();
+        var daoStub = TodoDaoStub.builder().build();
+
         var subject = new TodoServiceImpl(daoStub);
 
         assertThrows(NullPointerException.class,
                 () -> subject.update(new Todo(null, null, null, null, null)),
                 "Id for update is not provided");
-    }
-
-    @Test
-    void update_updateIsTransactional() throws Exception {
-        Method updateMethod = TodoServiceImpl.class.getMethod("update", Todo.class);
-
-        assertThat(updateMethod.isAnnotationPresent(Transactional.class)).isTrue();
     }
 
     private TodoEntity createEntity(String title, String details, long id) {

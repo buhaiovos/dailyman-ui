@@ -5,7 +5,6 @@ import ua.osb.quarkus.dailyman.todo.persistence.TodoDao;
 import ua.osb.quarkus.dailyman.todo.persistence.TodoEntity;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.transaction.Transactional;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -29,18 +28,17 @@ class TodoServiceImpl implements TodoService {
         var newTodo = new TodoEntity();
         newTodo.setTitle(todo.title());
         newTodo.setDetails(todo.details());
-        dao.create(newTodo);
 
-        return mappedToServiceLevel(newTodo);
+        return mappedToServiceLevel(dao.create(newTodo));
     }
 
     @Override
-    @Transactional
     public Todo update(Todo updatedTodo) {
         TodoEntity todoEntity = getEntity(updatedTodo.id());
         todoEntity.setTitle(updatedTodo.title());
         todoEntity.setDetails(updatedTodo.details());
-        return mappedToServiceLevel(todoEntity);
+
+        return mappedToServiceLevel(dao.update(todoEntity));
     }
 
     private TodoEntity getEntity(Long idOrNull) {

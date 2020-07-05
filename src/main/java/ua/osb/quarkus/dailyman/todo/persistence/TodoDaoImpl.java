@@ -29,6 +29,12 @@ class TodoDaoImpl implements TodoDao {
     }
 
     @Override
+    @Transactional
+    public TodoEntity update(TodoEntity updated) {
+        return entityManager.merge(updated);
+    }
+
+    @Override
     public List<TodoEntity> findAll() {
         var criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<TodoEntity> todoCriteriaQuery = criteriaBuilder.createQuery(TodoEntity.class);

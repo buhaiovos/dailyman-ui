@@ -8,5 +8,7 @@ public interface TodoDao {
 
     TodoEntity create(TodoEntity _new);
 
+    TodoEntity update(TodoEntity updated);
+
     List<TodoEntity> findAll();
 }

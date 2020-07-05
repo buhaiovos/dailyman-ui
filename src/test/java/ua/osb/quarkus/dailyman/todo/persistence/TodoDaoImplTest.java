@@ -69,6 +69,19 @@ class TodoDaoImplTest {
     }
 
     @Test
+    void update_whenExistingEntityProvided_persistsUpdatedToDatabase() {
+        TodoEntity entity = whenSomeTodoIsPersisted("title before", "details before");
+        entity.setTitle("title after");
+        entity.setDetails("details after");
+
+        subject.update(entity);
+
+        TodoEntity persisted = entityManager.find(TodoEntity.class, entity.getId());
+        assertThat(persisted.getTitle()).isEqualTo("title after");
+        assertThat(persisted.getDetails()).isEqualTo("details after");
+    }
+
+    @Test
     void audit_whenEntityIsCreated_createdDateTimeIsInitialized() {
         var newTodo = new TodoEntity();
         newTodo.setTitle("Title");

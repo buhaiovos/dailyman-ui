@@ -7,12 +7,16 @@ import ua.osb.quarkus.dailyman.todo.persistence.TodoDao;
 import ua.osb.quarkus.dailyman.todo.persistence.TodoEntity;
 
 import javax.enterprise.inject.Vetoed;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Vetoed
-public record TodoDaoStub
-        (Optional<TodoEntity>returnsById, long generatesIdUponCreation, List<TodoEntity>returnsAll)
+public record TodoDaoStub(Map<Long, TodoEntity>entityById,
+                          long generatesIdUponCreation,
+                          List<TodoEntity>returnsAll,
+                          ZonedDateTime timestampForUpdate)
         implements TodoDao {
 
     public static TodoDaoBuilder builder() {
@@ -21,7 +25,7 @@ public record TodoDaoStub
 
     @Override
     public Optional<TodoEntity> findById(long id) {
-        return returnsById;
+        return Optional.ofNullable(entityById.get(id));
     }
 
     @Override
@@ -29,6 +33,12 @@ public record TodoDaoStub
         _new.setId(generatesIdUponCreation);
         _new.setAudit(new Audit());
         return _new;
+    }
+
+    @Override
+    public TodoEntity update(TodoEntity updated) {
+        updated.getAudit().setLastModifiedDate(timestampForUpdate);
+        return updated;
     }
 
     @Override
@@ -40,12 +50,18 @@ public record TodoDaoStub
     @Accessors(fluent = true)
     @Setter
     public static class TodoDaoBuilder {
-        private Optional<TodoEntity> returnsById;
+        private Map<Long, TodoEntity> entityById;
         private long generatesIdUponCreation;
         private List<TodoEntity> returnsAll;
+        private ZonedDateTime onUpdateInsertsTimestamp;
 
         public TodoDaoStub build() {
-            return new TodoDaoStub(returnsById, generatesIdUponCreation, returnsAll);
+            return new TodoDaoStub(
+                    entityById,
+                    generatesIdUponCreation,
+                    returnsAll,
+                    onUpdateInsertsTimestamp
+            );
         }
     }
 }
