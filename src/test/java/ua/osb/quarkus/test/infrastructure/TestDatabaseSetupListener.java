@@ -17,10 +17,10 @@ public class TestDatabaseSetupListener {
     @Inject
     AgroalDataSource dataSource;
 
-    private EmbeddedMysqlServerRunner server;
+    private EmbeddedMysqlServer server;
 
     void onStart(@Observes StartupEvent e) {
-        this.server = EmbeddedMysqlServerRunner.start();
+        this.server = EmbeddedMysqlServer.start();
         log.info("Launching flyway on start");
 
         Flyway.configure()
@@ -30,6 +30,6 @@ public class TestDatabaseSetupListener {
     }
 
     void onClose(@Observes ShutdownEvent e) {
-        this.server.close();
+        this.server.stop();
     }
 }

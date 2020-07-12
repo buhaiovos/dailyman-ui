@@ -12,29 +12,28 @@ import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
 
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class EmbeddedMysqlServerRunner {
-    private static volatile EmbeddedMysqlServerRunner instance;
+public class EmbeddedMysqlServer {
+    private static volatile EmbeddedMysqlServer instance;
 
     private final EmbeddedMysql mysqld;
 
-    public void close() {
+    public void stop() {
         this.mysqld.stop();
     }
 
-    public static EmbeddedMysqlServerRunner start() {
-        EmbeddedMysql server;
+    public static EmbeddedMysqlServer start() {
         if (instance == null) {
-            synchronized (EmbeddedMysqlServerRunner.class) {
+            synchronized (EmbeddedMysqlServer.class) {
                 if (instance == null) {
-                    server = startServer();
-                    instance = new EmbeddedMysqlServerRunner(server);
+                    var embeddedMysql = startMysql();
+                    instance = new EmbeddedMysqlServer(embeddedMysql);
                 }
             }
         }
         return instance;
     }
 
-    private static EmbeddedMysql startServer() {
+    private static EmbeddedMysql startMysql() {
         MysqldConfig config = configureMysql57WithTestUser();
         return EmbeddedMysql.anEmbeddedMysql(config)
                 .addSchema("dailyman")
