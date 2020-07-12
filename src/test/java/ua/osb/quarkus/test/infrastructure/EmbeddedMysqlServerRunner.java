@@ -23,10 +23,12 @@ public class EmbeddedMysqlServerRunner {
 
     public static EmbeddedMysqlServerRunner start() {
         EmbeddedMysql server;
-        synchronized (EmbeddedMysqlServerRunner.class) {
-            if (instance == null) {
-                server = startServer();
-                instance = new EmbeddedMysqlServerRunner(server);
+        if (instance == null) {
+            synchronized (EmbeddedMysqlServerRunner.class) {
+                if (instance == null) {
+                    server = startServer();
+                    instance = new EmbeddedMysqlServerRunner(server);
+                }
             }
         }
         return instance;
