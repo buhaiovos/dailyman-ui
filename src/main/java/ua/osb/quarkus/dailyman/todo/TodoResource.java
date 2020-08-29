@@ -3,6 +3,7 @@ package ua.osb.quarkus.dailyman.todo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.quarkus.security.Authenticated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,8 @@ import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @RequiredArgsConstructor
-@Path("todos")
+@Path("/todos")
+@Authenticated
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class TodoResource {
