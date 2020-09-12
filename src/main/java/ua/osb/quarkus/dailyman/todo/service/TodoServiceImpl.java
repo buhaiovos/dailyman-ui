@@ -42,7 +42,7 @@ class TodoServiceImpl implements TodoService {
     }
 
     private TodoEntity getEntity(Long idOrNull) {
-        long id = requireNonNull(idOrNull, "Id for udpate is not provided");
+        long id = requireNonNull(idOrNull, "Id for update is not provided");
         return dao.findById(id)
                 .orElseThrow(() -> itemNotFound(id));
     }
