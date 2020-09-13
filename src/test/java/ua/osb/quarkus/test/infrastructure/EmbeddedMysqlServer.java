@@ -36,7 +36,7 @@ public class EmbeddedMysqlServer {
     private static EmbeddedMysql startMysql() {
         MysqldConfig config = configureMysql57WithTestUser();
         return EmbeddedMysql.anEmbeddedMysql(config)
-                .addSchema("dailyman")
+                .addSchema("dailyman_ui")
                 .start();
     }
 
